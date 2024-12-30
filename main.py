@@ -1,8 +1,7 @@
 import pygame
 import os
+import sys
 pygame.init()
-size = width, height = 300, 700
-screen = pygame.display.set_mode(size)
 
 
 def load_image(name, colorkey=None):
@@ -32,6 +31,45 @@ def load_music(name):
         raise SystemExit(message)
 
 
+size = width, height = 300, 700
+screen = pygame.display.set_mode(size)
+clock = pygame.time.Clock()
+pygame.display.set_icon(load_image("skydiver.png"))
+FPS = 60
+load_music('melody.mp3')
+pygame.display.set_caption("Skydiver")
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+def start_screen():
+    intro_text = ['Press key from "1" to "3"',
+                  'to choose level']
+    screen.fill((115, 195, 225))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    return  # начинаем игру
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 def load_level(filename):
     filename = "data/" + filename
     try:
@@ -52,16 +90,11 @@ class Skydiver(pygame.sprite.Sprite):
         self.image = Skydiver.image
         self.rect = self.image.get_rect()
         self.rect.x = 0
-        self.rect.y = 0
+        self.rect.y = 300
 
 
 def main():
-
-
-    pygame.display.set_icon(load_image("skydiver.png"))
-    clock = pygame.time.Clock()
-    load_music('melody.mp3')
-    pygame.display.set_caption("Skydiver")
+    start_screen()
     all_sprites = pygame.sprite.Group()
     skydiver = Skydiver(all_sprites)
 
@@ -81,7 +114,7 @@ def main():
 
         pygame.display.flip()
     pygame.quit()
-    clock.tick(60)
+    clock.tick(FPS)
 
 
 if __name__ == "__main__":
