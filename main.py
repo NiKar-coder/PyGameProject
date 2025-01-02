@@ -134,10 +134,8 @@ borders = pygame.sprite.Group()
 
 
 class BorderForSkydiver(pygame.sprite.Sprite):
-
     def __init__(self, x1, y1, x2, y2):
         super().__init__(borders)
-
         self.add(horizontal_borders)
         self.image = pygame.Surface([x2 - x1, 1])
         self.rect = pygame.Rect(x1, y1, x2 - x1, 1)
@@ -150,11 +148,9 @@ def main():
     pygame.mouse.set_visible(False)
     counter = 189
     BorderForSkydiver(5, 5, WIDTH - 5, 5)
-    '''
     BorderForSkydiver(5, HEIGHT - 5, WIDTH - 5, HEIGHT - 5)
     BorderForSkydiver(5, 5, 5, HEIGHT - 5)
     BorderForSkydiver(WIDTH - 5, 5, WIDTH - 5, HEIGHT - 5)
-    '''
 
     while running:
         counter += 1
