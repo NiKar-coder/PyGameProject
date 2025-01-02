@@ -1,7 +1,11 @@
 import pygame
 import os
 import sys
+from random import choice
+import time
 pygame.init()
+
+running = True
 
 
 def load_image(name, colorkey=None):
@@ -31,8 +35,8 @@ def load_music(name):
         raise SystemExit(message)
 
 
-size = width, height = 300, 700
-screen = pygame.display.set_mode(size)
+SIZE = WIDTH, HEIGHT = 300, 700
+screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
 pygame.display.set_icon(load_image("skydiver.png"))
 FPS = 60
@@ -89,18 +93,72 @@ class Skydiver(pygame.sprite.Sprite):
         super().__init__(*group)
         self.image = Skydiver.image
         self.rect = self.image.get_rect()
-        self.rect.x = 0
-        self.rect.y = 300
+        self.rect.x = 10
+        self.rect.y = 10
+        self.speedy = 1
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def update(self):
+        global running
+        if pygame.sprite.spritecollideany(self, horizontal_borders):
+            running = False
+
+
+skydivers = pygame.sprite.Group()
+skydiver = Skydiver(skydivers)
+
+
+class Cloud(pygame.sprite.Sprite):
+    image = load_image("cloud.png")
+    POSITIONS_X = [10, 200]
+
+    def __init__(self, *group):
+        super().__init__(*group)
+        self.image = Cloud.image
+        self.rect = self.image.get_rect()
+        self.rect.x = choice(Cloud.POSITIONS_X)
+        self.rect.y = 700
+        self.speedy = 1
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def update(self):
+        global running
+        if not pygame.sprite.collide_mask(self, skydiver):
+            self.rect.y -= self.speedy
+        else:
+            running = False
+
+
+horizontal_borders = pygame.sprite.Group()
+
+
+class Border(pygame.sprite.Sprite):
+
+    def __init__(self, x1, y1, x2, y2):
+        super().__init__(skydivers)
+
+        self.add(horizontal_borders)
+        self.image = pygame.Surface([x2 - x1, 1])
+        self.rect = pygame.Rect(x1, y1, x2 - x1, 1)
 
 
 def main():
+    global running
     start_screen()
-    all_sprites = pygame.sprite.Group()
-    skydiver = Skydiver(all_sprites)
-
+    clouds = pygame.sprite.Group()
     pygame.mouse.set_visible(False)
-    running = True
+    counter = 179
+    Border(5, 5, WIDTH - 5, 5)
+    Border(5, HEIGHT - 5, WIDTH - 5, HEIGHT - 5)
+    Border(5, 5, 5, HEIGHT - 5)
+    Border(WIDTH - 5, 5, WIDTH - 5, HEIGHT - 5)
+
     while running:
+        counter += 1
+        if counter == 180:
+            counter = 0
+            Cloud(clouds)
+        time.sleep(0.01)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -108,9 +166,16 @@ def main():
                 if event.key == pygame.K_RIGHT:
                     skydiver.rect.x = 200
                 elif event.key == pygame.K_LEFT:
-                    skydiver.rect.x = 1
+                    skydiver.rect.x = 10
+                elif event.key == pygame.K_DOWN:
+                    skydiver.rect.y += 30
+                elif event.key == pygame.K_UP:
+                    skydiver.rect.y -= 30
         screen.fill((115, 195, 225))
-        all_sprites.draw(screen)
+        skydivers.draw(screen)
+        clouds.draw(screen)
+        skydivers.update()
+        clouds.update()
 
         pygame.display.flip()
     pygame.quit()
