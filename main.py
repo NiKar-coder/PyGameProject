@@ -130,12 +130,13 @@ class Cloud(pygame.sprite.Sprite):
 
 
 horizontal_borders = pygame.sprite.Group()
+borders = pygame.sprite.Group()
 
 
-class Border(pygame.sprite.Sprite):
+class BorderForSkydiver(pygame.sprite.Sprite):
 
     def __init__(self, x1, y1, x2, y2):
-        super().__init__(skydivers)
+        super().__init__(borders)
 
         self.add(horizontal_borders)
         self.image = pygame.Surface([x2 - x1, 1])
@@ -147,15 +148,17 @@ def main():
     start_screen()
     clouds = pygame.sprite.Group()
     pygame.mouse.set_visible(False)
-    counter = 179
-    Border(5, 5, WIDTH - 5, 5)
-    Border(5, HEIGHT - 5, WIDTH - 5, HEIGHT - 5)
-    Border(5, 5, 5, HEIGHT - 5)
-    Border(WIDTH - 5, 5, WIDTH - 5, HEIGHT - 5)
+    counter = 189
+    BorderForSkydiver(5, 5, WIDTH - 5, 5)
+    '''
+    BorderForSkydiver(5, HEIGHT - 5, WIDTH - 5, HEIGHT - 5)
+    BorderForSkydiver(5, 5, 5, HEIGHT - 5)
+    BorderForSkydiver(WIDTH - 5, 5, WIDTH - 5, HEIGHT - 5)
+    '''
 
     while running:
         counter += 1
-        if counter == 180:
+        if counter == 190:
             counter = 0
             Cloud(clouds)
         time.sleep(0.01)
