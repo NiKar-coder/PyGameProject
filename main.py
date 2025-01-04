@@ -6,6 +6,9 @@ import time
 pygame.init()
 
 running = True
+level = None
+distance = None
+delay = None
 
 
 def load_image(name, colorkey=None):
@@ -68,6 +71,8 @@ def end_screen():
     while True:
 
         for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
@@ -77,6 +82,7 @@ def end_screen():
 
 
 def start_screen():
+    global level, running
     intro_text = ['Press key from "1" to "3"',
                   'to choose level']
     screen.fill((115, 195, 225))
@@ -94,23 +100,20 @@ def start_screen():
     while True:
 
         for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_1:
+                    level = 1
+                    return  # начинаем игру
+                if event.key == pygame.K_2:
+                    level = 2
+                    return  # начинаем игру
+                if event.key == pygame.K_3:
+                    level = 3
                     return  # начинаем игру
         pygame.display.flip()
         clock.tick(FPS)
-
-
-def load_level(filename):
-    filename = "data/" + filename
-    try:
-        with open(filename, 'r') as mapFile:
-            level_map = [line.strip() for line in mapFile]
-        max_width = max(map(len, level_map))
-        return list(map(lambda x: x.ljust(max_width, '.'), level_map))
-    except FileNotFoundError as message:
-        print(f'File {filename} not found')
-        raise SystemExit(message)
 
 
 class Skydiver(pygame.sprite.Sprite):
@@ -126,7 +129,6 @@ class Skydiver(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
-        global running
         if pygame.sprite.spritecollideany(self, horizontal_borders):
             end_screen()
 
@@ -149,7 +151,6 @@ class Cloud(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
-        global running
         if not pygame.sprite.collide_mask(self, skydiver):
             self.rect.y -= self.speedy
         else:
@@ -169,11 +170,22 @@ class BorderForSkydiver(pygame.sprite.Sprite):
 
 
 def main():
-    global running
+    global running, distance, level, delay
     start_screen()
+
+    if level == 1:
+        distance = 190
+        delay = 0.015
+    elif level == 2:
+        distance = 170
+        delay = 0.01
+    elif level == 3:
+        distance = 150
+        delay = 0.005
+
     clouds = pygame.sprite.Group()
     pygame.mouse.set_visible(False)
-    counter = 189
+    counter = distance - 1
     BorderForSkydiver(5, 5, WIDTH - 5, 5)
     BorderForSkydiver(5, HEIGHT - 5, WIDTH - 5, HEIGHT - 5)
     BorderForSkydiver(5, 5, 5, HEIGHT - 5)
@@ -181,10 +193,10 @@ def main():
 
     while running:
         counter += 1
-        if counter == 190:
+        if counter == distance:
             counter = 0
             Cloud(clouds)
-        time.sleep(0.01)
+        time.sleep(delay)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
