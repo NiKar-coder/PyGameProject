@@ -49,6 +49,33 @@ def terminate():
     sys.exit()
 
 
+def end_screen():
+    global running
+    intro_text = ['Game over!',
+                  'Press "ESC" to exit']
+    screen.fill((115, 195, 225))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                    return
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 def start_screen():
     intro_text = ['Press key from "1" to "3"',
                   'to choose level']
@@ -101,7 +128,7 @@ class Skydiver(pygame.sprite.Sprite):
     def update(self):
         global running
         if pygame.sprite.spritecollideany(self, horizontal_borders):
-            running = False
+            end_screen()
 
 
 skydivers = pygame.sprite.Group()
@@ -126,7 +153,7 @@ class Cloud(pygame.sprite.Sprite):
         if not pygame.sprite.collide_mask(self, skydiver):
             self.rect.y -= self.speedy
         else:
-            running = False
+            end_screen()
 
 
 horizontal_borders = pygame.sprite.Group()
