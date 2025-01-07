@@ -204,7 +204,7 @@ def main():
     if level == 1:
         distance = 190
         delay = 0.015
-        time_ = 10
+        time_ = 60
     elif level == 2:
         distance = 170
         time_ = 20
@@ -227,8 +227,8 @@ def main():
             db.close()
             break
         seconds = (pygame.time.get_ticks() - start_ticks) / \
-            1000  # calculate how many seconds
-        if seconds > time_:  # if more than 10 seconds close the game
+            1000
+        if seconds > time_:
             victory_screen()
         counter += 1
         if counter == distance:
