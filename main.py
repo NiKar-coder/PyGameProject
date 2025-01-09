@@ -263,3 +263,5 @@ if __name__ == "__main__":
     main()
 # add some animation to collide
 # add cloud counting
+# add some birds
+# add registration (down the screen)
