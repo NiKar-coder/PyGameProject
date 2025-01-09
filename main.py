@@ -84,7 +84,7 @@ def end_screen():
 
 def victory_screen():
     global running
-    intro_text = [f"U've passed {level} level!",
+    intro_text = [f"U've passed the {level} level!",
                   'Press "ESC" to exit']
     db.add_result(level)
     screen.fill((115, 195, 225))
@@ -261,3 +261,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+# add some animation to collide
+# add cloud counting
