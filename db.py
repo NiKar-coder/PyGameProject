@@ -14,10 +14,11 @@ class Db:
                                 isPassed INTEGER NOT NULL)''')
         self.connection.commit()
 
-    def add_result(self, level):
+    def add_result(self, level, scores):
         try:
             self.cursor.execute(
-                "UPDATE Achievements SET isPassed = 1 WHERE level = ?", (level,))
+                "UPDATE Achievements SET scores = ? WHERE level = ?",
+                (scores, level))
             self.connection.commit()
         except sqlite3.IntegrityError as message:
             print("Error!")

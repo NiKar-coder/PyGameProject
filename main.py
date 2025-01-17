@@ -6,12 +6,18 @@ import time
 from db import Db
 pygame.init()
 db = Db()
-
+scores = int()
 time_ = None
 running = True
 level = None
 distance = None
 delay = None
+
+
+def write_result():
+    global scores, level
+    db.add_result(level, scores)
+    db.close()
 
 
 def load_image(name, colorkey=None):
@@ -57,6 +63,7 @@ def terminate():
 
 def end_screen():
     global running
+    write_result()
     intro_text = ['Game over!',
                   'Press "ESC" to exit']
     screen.fill((115, 195, 225))
@@ -84,9 +91,9 @@ def end_screen():
 
 def victory_screen():
     global running
+    write_result()
     intro_text = [f"U've passed the {level} level!",
                   'Press "ESC" to exit']
-    db.add_result(level)
     screen.fill((115, 195, 225))
     font = pygame.font.Font(None, 30)
     text_coord = 50
@@ -165,12 +172,13 @@ skydiver = Skydiver(skydivers)
 
 
 class Cloud(pygame.sprite.Sprite):
-    image = load_image("cloud.png")
+    images = ["cloud.png", "cloudO.png"]
     POSITIONS_X = [10, 200]
 
     def __init__(self, *group):
         super().__init__(*group)
-        self.image = Cloud.image
+        self.name = choice(Cloud.images)
+        self.image = load_image(self.name)
         self.rect = self.image.get_rect()
         self.rect.x = choice(Cloud.POSITIONS_X)
         self.rect.y = 700
@@ -178,10 +186,15 @@ class Cloud(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
+        global scores
         if not pygame.sprite.collide_mask(self, skydiver):
             self.rect.y -= self.speedy
         else:
-            end_screen()
+            if self.name == "cloud.png":
+                end_screen()
+            else:
+                scores += 1
+                self.kill()
 
 
 horizontal_borders = pygame.sprite.Group()
@@ -196,23 +209,31 @@ class BorderForSkydiver(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x1, y1, x2 - x1, 1)
 
 
+font_name = pygame.font.match_font('arial')
+
+
+def draw_text(surf, text, size, x, y):
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, (204, 0, 0))
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
+
+
 def main():
-    global running, distance, level, delay, time_
+    global running, distance, level, delay, time_, scores
 
     start_screen()
 
     if level == 1:
         distance = 190
         delay = 0.015
-        time_ = 60
     elif level == 2:
         distance = 170
-        time_ = 20
         delay = 0.01
     elif level == 3:
         distance = 150
         delay = 0.005
-        time_ = 10
     start_ticks = pygame.time.get_ticks()
     clouds = pygame.sprite.Group()
     pygame.mouse.set_visible(False)
@@ -224,11 +245,10 @@ def main():
 
     while True:
         if not running:
-            db.close()
             break
         seconds = (pygame.time.get_ticks() - start_ticks) / \
             1000
-        if seconds > time_:
+        if seconds > 300:
             victory_screen()
         counter += 1
         if counter == distance:
@@ -249,6 +269,9 @@ def main():
                 elif event.key == pygame.K_UP:
                     skydiver.rect.y -= 30
         screen.fill((115, 195, 225))
+
+        draw_text(screen, str(scores), 18, WIDTH / 2, 10)
+
         skydivers.draw(screen)
         clouds.draw(screen)
         skydivers.update()
