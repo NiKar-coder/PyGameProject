@@ -1,3 +1,4 @@
 PyGameProject
 .vscode
 __pycache__
+*.db

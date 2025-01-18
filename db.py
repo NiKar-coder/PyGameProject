@@ -9,9 +9,15 @@ class Db:
 
     def create_table(self):
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS Achievements (
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                level INTEGER NOT NULL,
-                                isPassed INTEGER NOT NULL)''')
+                                level INTEGER UNIQUE NOT NULL,
+                                scores INTEGER);''')
+
+        self.cursor.execute(
+            '''INSERT OR IGNORE INTO Achievements (level) VALUES (1);''')
+        self.cursor.execute(
+            '''INSERT OR IGNORE INTO Achievements (level) VALUES (2);''')
+        self.cursor.execute(
+            '''INSERT OR IGNORE INTO Achievements (level) VALUES (3);''')
         self.connection.commit()
 
     def add_result(self, level, scores):
