@@ -8,22 +8,29 @@ class Db:
         self.create_table()
 
     def create_table(self):
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS Achievements (
-                                level INTEGER UNIQUE NOT NULL,
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS Users (
+                                login TEXT UNIQUE NOT NULL,
+                                password TEXT UNIQUE NOT NULL,
+                                level INTEGER,
                                 scores INTEGER);''')
 
-        self.cursor.execute(
-            '''INSERT OR IGNORE INTO Achievements (level) VALUES (1);''')
-        self.cursor.execute(
-            '''INSERT OR IGNORE INTO Achievements (level) VALUES (2);''')
-        self.cursor.execute(
-            '''INSERT OR IGNORE INTO Achievements (level) VALUES (3);''')
         self.connection.commit()
+
+    def login(self, login, password):
+        self.cursor.execute(
+            "INSERT OR IGNORE INTO Users (login, password) VALUES (?, ?);",
+            (login, password))
+        self.connection.commit()
+        if self.cursor.execute(
+                "SELECT * FROM Users WHERE login = ? AND password = ?",
+                (login, password)).fetchone() != None:
+            print("Login successful")
+            return True
 
     def add_result(self, level, scores):
         try:
             self.cursor.execute(
-                "UPDATE Achievements SET scores = ? WHERE level = ?",
+                "UPDATE Users SET scores = ?, level = ?",
                 (scores, level))
             self.connection.commit()
         except sqlite3.IntegrityError as message:
