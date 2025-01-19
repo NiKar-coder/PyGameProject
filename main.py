@@ -279,14 +279,14 @@ def main():
     start_screen()
 
     if level == 1:
-        distance = 190
-        delay = 0.015
-    elif level == 2:
         distance = 170
         delay = 0.01
+    elif level == 2:
+        distance = 170
+        delay = 0.007
     elif level == 3:
         distance = 150
-        delay = 0.005
+        delay = 0.002
     start_ticks = pg.time.get_ticks()
     clouds = pg.sprite.Group()
     # pg.mouse.set_visible(False)
