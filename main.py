@@ -276,8 +276,8 @@ def draw_text(surf, text, size, x, y):
 
 def main():
     global running, distance, level, delay, time_, scores
-    start_screen()
 
+    start_screen()
     if level == 1:
         distance = 170
         delay = 0.01
@@ -339,3 +339,7 @@ def main():
 if __name__ == "__main__":
     main()
     pg.quit()
+
+# add mute button
+# show scores
+# change level colors
