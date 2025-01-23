@@ -408,9 +408,7 @@ class Obstacle(pg.sprite.Sprite):
             self.kill()
         else:
             if self.name == "cloud.png":
-                if level == 3:
-                    scores += 0.3
-                elif level == 2:
+                if level == 2:
                     scores += 0.2
                 else:
                     scores += 0.1
@@ -463,10 +461,6 @@ def main():
         color = 114, 159, 207
     elif level == 2:
         distance = 170
-        delay = 0.002
-        color = 52, 101, 164
-    elif level == 3:
-        distance = 150
         delay = 0.002
         color = 32, 74, 135
     clouds = pg.sprite.Group()
