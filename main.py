@@ -386,30 +386,28 @@ skydivers = pg.sprite.Group()
 skydiver = Skydiver(skydivers)
 
 
-class Cloud(pg.sprite.Sprite):
-    images = ["cloud.png", "cloudO.png"]
+class Obstacle(pg.sprite.Sprite):
+    images = ["cloud.png", "cloudO.png", "bird.png"]
     POSITIONS_X = [10, 200]
 
     def __init__(self, *group):
         super().__init__(*group)
-        self.name = choice(Cloud.images)
+        self.name = choice(Obstacle.images)
         self.image = load_image(self.name)
         self.rect = self.image.get_rect()
-        self.rect.x = choice(Cloud.POSITIONS_X)
+        self.rect.x = choice(Obstacle.POSITIONS_X)
         self.rect.y = 700
         self.speedy = 1
         self.mask = pg.mask.from_surface(self.image)
 
     def update(self):
-        global scores
+        global scores, level
         if not pg.sprite.collide_mask(self, skydiver):
             self.rect.y -= self.speedy
         elif pg.sprite.spritecollideany(self, horizontal_borders):
             self.kill()
         else:
-            if self.name == "cloud.png":
-                end_screen()
-            else:
+            if self.name == "cloudO.png":
                 if level == 3:
                     scores += 0.3
                 elif level == 2:
@@ -418,6 +416,9 @@ class Cloud(pg.sprite.Sprite):
                     scores += 0.1
                 scores = round(scores, 1)
                 self.kill()
+            else:
+                self.kill()
+                end_screen()
 
 
 horizontal_borders = pg.sprite.Group()
@@ -480,7 +481,7 @@ def main():
         counter += 1
         if counter == distance:
             counter = 0
-            Cloud(clouds)
+            Obstacle(clouds)
         time.sleep(delay)
         for event in pg.event.get():
             if event.type == pg.QUIT:
