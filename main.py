@@ -407,7 +407,7 @@ class Obstacle(pg.sprite.Sprite):
         elif pg.sprite.spritecollideany(self, horizontal_borders):
             self.kill()
         else:
-            if self.name == "cloudO.png":
+            if self.name == "cloud.png":
                 if level == 3:
                     scores += 0.3
                 elif level == 2:
@@ -416,7 +416,11 @@ class Obstacle(pg.sprite.Sprite):
                     scores += 0.1
                 scores = round(scores, 1)
                 self.kill()
-            else:
+            if self.name == "cloudO.png":
+                scores += 0.5
+                scores = round(scores, 1)
+                self.kill()
+            if self.name == "bird.png":
                 self.kill()
                 end_screen()
 
