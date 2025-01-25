@@ -461,7 +461,8 @@ melody_name = 'melody.mp3'
 
 
 def main():
-    global running, distance, level, delay, time_, scores, login, scores_display
+    global running, distance, level, delay, time_, scores, login, \
+        scores_display
 
     color = None
     start_screen()
