@@ -25,12 +25,13 @@ class Db:
 
     def login(self, login, password):
         self.cursor.execute(
-            "INSERT OR IGNORE INTO Users (login, password, scores) VALUES (?, ?, 0);",
+            '''INSERT OR IGNORE INTO Users (login, password, scores)
+            VALUES (?, ?, 0);''',
             (login, password))
         self.connection.commit()
         if self.cursor.execute(
                 "SELECT * FROM Users WHERE login = ? AND password = ?",
-                (login, password)).fetchone() != None:
+                (login, password)).fetchone() is not None:
             print("Login successful")
             return True
 
