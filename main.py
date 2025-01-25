@@ -60,8 +60,9 @@ class Db:
 
 
 pg.init()
+scores_display = None
 db = Db()
-scores = None
+scores = 0
 time_ = None
 running = True
 level = None
@@ -266,7 +267,7 @@ def end_screen():
     global running
     write_result()
     intro_text = ['Game over!',
-                  f'Your score: {scores}',
+                  f'Your score: {scores_display}',
                   'Press "ESC" to exit']
     screen.fill((115, 195, 225))
     font = FONT_
@@ -406,7 +407,7 @@ class Obstacle(pg.sprite.Sprite):
         self.mask = pg.mask.from_surface(self.image)
 
     def update(self):
-        global scores, level
+        global scores, level, scores_display
         if not pg.sprite.collide_mask(self, skydiver):
             self.rect.y -= self.speedy
         elif pg.sprite.spritecollideany(self, horizontal_borders):
@@ -415,13 +416,18 @@ class Obstacle(pg.sprite.Sprite):
             if self.name == "cloud.png":
                 if level == 2:
                     scores += 0.2
+                    scores_display += 0.2
                 else:
                     scores += 0.1
+                    scores_display += 0.1
                 scores = round(scores, 1)
+                scores_display = round(scores_display, 1)
                 self.kill()
             if self.name == "cloudO.png":
                 scores += 0.5
+                scores_display += 0.5
                 scores = round(scores, 1)
+                scores_display = round(scores_display, 1)
                 self.kill()
             if self.name == "bird.png":
                 self.kill()
@@ -455,11 +461,11 @@ melody_name = 'melody.mp3'
 
 
 def main():
-    global running, distance, level, delay, time_, scores, login
+    global running, distance, level, delay, time_, scores, login, scores_display
 
     color = None
     start_screen()
-    scores = db.get_scores(login)
+    scores_display = db.get_scores(login)
     if chkbox.is_checked():
         load_music(melody_name)
     if level == 1:
@@ -504,7 +510,7 @@ def main():
                     skydiver.rect.y -= 30
 
         screen.fill(color)
-        draw_text(screen, str(scores), 22, WIDTH / 2, 10)
+        draw_text(screen, str(scores_display), 22, WIDTH / 2, 10)
 
         skydivers.draw(screen)
         clouds.draw(screen)
