@@ -9,22 +9,6 @@ from random import choice
 import pygame as pg
 
 
-pg.init()
-
-scores = int()
-time_ = None
-running = True
-level = None
-distance = None
-delay = None
-COLOR_INACTIVE = pg.Color(136, 138, 133)
-COLOR_ACTIVE = pg.Color(0, 0, 0)
-FONT = pg.font.Font(None, 32)
-login = None
-password = None
-font_ = 'z003'
-
-
 class Db:
     def __init__(self, db_name="users.db"):
         self.connection = sqlite3.connect(db_name)
@@ -50,14 +34,21 @@ class Db:
             print("Login successful")
             return True
 
+    def get_scores(self, login):
+        try:
+            return round(self.cursor.execute(
+                "SELECT scores FROM Users WHERE login = ?",
+                (login,)).fetchone()[0], 1)
+        except Exception:
+            return 0
+
     def add_result(self, scores, login):
         try:
-            scores_ = self.cursor.execute(
-                "SELECT scores FROM Users WHERE login = ?", (login,)).fetchone()
+            scores_ = self.get_scores(login)
             print(scores_)
             self.cursor.execute(
                 "UPDATE Users SET scores = ?",
-                (float(scores_[0]) + float(scores),))
+                (float(scores_) + float(scores),))
             self.connection.commit()
         except sqlite3.IntegrityError as message:
             print("Error!")
@@ -67,7 +58,20 @@ class Db:
         self.connection.close()
 
 
+pg.init()
 db = Db()
+scores = None
+time_ = None
+running = True
+level = None
+distance = None
+delay = None
+COLOR_INACTIVE = pg.Color(136, 138, 133)
+COLOR_ACTIVE = pg.Color(0, 0, 0)
+FONT = pg.font.Font(None, 32)
+login = None
+password = None
+FONT_ = 'z003'
 
 
 class Checkbox:
@@ -206,7 +210,6 @@ class InputBox:
 
 def write_result():
     global scores, login, level
-
     db.add_result(scores, login)
     db.close()
 
@@ -265,14 +268,14 @@ def end_screen():
                   f'Your score: {scores}',
                   'Press "ESC" to exit']
     screen.fill((115, 195, 225))
-    font = pg.font.Font(None, 30)
-    text_coord = 50
+    font = FONT_
+    text_coord = 280
     for line in intro_text:
         string_rendered = font.render(line, 1, pg.Color('black'))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
-        intro_rect.x = 10
+        intro_rect.x = 75
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
 
@@ -289,18 +292,19 @@ def end_screen():
 
 def victory_screen():
     global running
+    screen.fill((115, 195, 225))
     write_result()
     intro_text = [f"U've passed the {level} level!",
                   'Press "ESC" to exit']
 
-    font = pg.font.Font(None, 30)
-    text_coord = 50
+    font = FONT_
+    text_coord = 280
     for line in intro_text:
         string_rendered = font.render(line, 1, pg.Color('black'))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
-        intro_rect.x = 10
+        intro_rect.x = 50
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
 
@@ -319,20 +323,20 @@ chkbox = Checkbox(screen, WIDTH - 20, 240)
 
 
 def start_screen():
-    global level, running, font_
+    global level, running, FONT_
     input_box1 = InputBox(95, 30, 140, 32)
     input_box2 = InputBox(95, 100, 140, 32)
     input_box3 = InputBox(95, 170, 140, 32)
     input_boxes = [input_box1, input_box2, input_box3]
     arr = list()
-    font_ = pg.font.SysFont(font_, 24)
-    text2 = font_.render("Password", True,
+    FONT_ = pg.font.SysFont(FONT_, 24)
+    text2 = FONT_.render("Password", True,
                          (0, 0, 0))
-    text1 = font_.render("Login", True,
+    text1 = FONT_.render("Login", True,
                          (0, 0, 0))
-    text3 = font_.render("Level", True,
+    text3 = FONT_.render("Level", True,
                          (0, 0, 0))
-    text4 = font_.render("Music", True, (0, 0, 0))
+    text4 = FONT_.render("Music", True, (0, 0, 0))
 
     while True:
         global login, password
@@ -435,7 +439,7 @@ class Border(pg.sprite.Sprite):
         self.rect = pg.Rect(x1, y1, x2 - x1, 1)
 
 
-font_name = pg.font.match_font(font_)
+font_name = pg.font.match_font(FONT_)
 
 
 def draw_text(surf, text, size, x, y):
@@ -450,9 +454,11 @@ melody_name = 'melody.mp3'
 
 
 def main():
-    global running, distance, level, delay, time_, scores
+    global running, distance, level, delay, time_, scores, login
+
     color = None
     start_screen()
+    scores = db.get_scores(login)
     if chkbox.is_checked():
         load_music(melody_name)
     if level == 1:
