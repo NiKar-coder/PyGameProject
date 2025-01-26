@@ -1,39 +1,52 @@
-# Standard library imports
 import os
 import sys
 import sqlite3
 import time
 from random import choice
-
-# Third-party imports
 import pygame as pg
 
 
 class Db:
-    def __init__(self, db_name="users.db"):
+    def __init__(self, db_name="users.sqlite3"):
         self.connection = sqlite3.connect(db_name)
         self.cursor = self.connection.cursor()
         self.create_table()
 
     def create_table(self):
+        '''создание таблицы, если ее не сущуствует'''
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS Users (
                                 login TEXT UNIQUE NOT NULL,
                                 password TEXT UNIQUE NOT NULL,
                                 scores REAL);''')
 
-        self.connection.commit()
+        self.connection.commit()  # сохранение изменений
+    '''функция для входа в аккаунт'''
 
     def login(self, login, password):
+        '''если аккаунт не существует, то создается новый'''
         self.cursor.execute(
             '''INSERT OR IGNORE INTO Users (login, password, scores)
             VALUES (?, ?, 0);''',
             (login, password))
         self.connection.commit()
+        '''если пароль и логин совпадают'''
         if self.cursor.execute(
                 "SELECT * FROM Users WHERE login = ? AND password = ?",
                 (login, password)).fetchone() is not None:
             print("Login successful")
             return True
+
+    def clear_achievements(self, login):
+        try:
+            print("Clearing achievements")
+            self.cursor.execute(
+                "UPDATE Users SET scores = ? WHERE login = ?",
+                (0, login))
+            self.connection.commit()
+        except Exception:
+            print("Error clearing achievements")
+
+    '''функция для получения очков из БД'''
 
     def get_scores(self, login):
         try:
@@ -41,7 +54,8 @@ class Db:
                 "SELECT scores FROM Users WHERE login = ?",
                 (login,)).fetchone()[0], 1)
         except Exception:
-            return 0
+            return 0  # Если у пользователя нет очков, то возвращается 0
+    '''функция для добавления результата в БД'''
 
     def add_result(self, scores, login):
         try:
@@ -54,14 +68,15 @@ class Db:
         except sqlite3.IntegrityError as message:
             print("Error!")
             raise SystemExit(message)
+    '''закрытие БД'''
 
     def close(self):
         self.connection.close()
 
 
-pg.init()
+pg.init()  # инициализация pygame
 scores_display = None
-db = Db()
+db = Db()  # создание объекта класса Db
 scores = 0
 time_ = None
 running = True
@@ -73,7 +88,10 @@ COLOR_ACTIVE = pg.Color(0, 0, 0)
 FONT = pg.font.Font(None, 32)
 login = None
 password = None
-FONT_ = 'z003'
+FONT_ = 'z003'  # игровой шрифт
+
+
+'''Класс для чекбокса'''
 
 
 class Checkbox:
@@ -91,10 +109,10 @@ class Checkbox:
         self.fs = font_size
         self.fc = font_color
         self.to = text_offset
-        # checkbox object
+        '''объект чекбокса'''
         self.checkbox_obj = pg.Rect(self.x, self.y, 12, 12)
         self.checkbox_outline = self.checkbox_obj.copy()
-        # variables to test the different states of the checkbox
+        '''переменные для проверки состояния чекбокса'''
         self.checked = False
         self.active = False
         self.unchecked = True
@@ -108,6 +126,7 @@ class Checkbox:
         self.font_pos = (self.x + 12 / 2 - w / 2 +
                          self.to[0], self.y + 12 / 2 - h / 2 + self.to[1])
         self.surface.blit(self.font_surf, self.font_pos)
+    '''отрисовка чекбокса'''
 
     def render_checkbox(self):
         if self.checked:
@@ -120,39 +139,7 @@ class Checkbox:
             pg.draw.rect(self.surface, self.oc, self.checkbox_outline, 1)
         self._draw_button_text()
 
-    def _update(self, event_object):
-        x, y = event_object.pos
-        # self.x, self.y, 12, 12
-        px, py, w, h = self.checkbox_obj  # getting check box dimensions
-        if px < x < px + w and px < x < px + w:
-            self.active = True
-        else:
-            self.active = False
-
-    def _mouse_up(self):
-        if not self.unactive:
-            if self.active and not self.checked and self.click:
-                self.checked = True
-
-            elif self.checked:
-                self.checked = False
-                self.unchecked = True
-
-            if self.click is True and self.active is False:
-                if self.checked:
-                    self.checked = True
-                if self.unchecked:
-                    self.unchecked = True
-                self.active = False
-
-    def update_checkbox(self, event_object):
-        if event_object.type == pg.MOUSEBUTTONDOWN:
-            self.click = True
-        if event_object.type == pg.MOUSEBUTTONUP:
-            self._mouse_up()
-            self.unactive = True
-        if event_object.type == pg.MOUSEMOTION:
-            self._update(event_object)
+    '''функции для проверки состояния чекбокса'''
 
     def is_checked(self):
         if self.checked is True:
@@ -160,11 +147,19 @@ class Checkbox:
         else:
             return False
 
+    def handel_event(self, event):
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if self.checkbox_obj.collidepoint(event.pos):
+                self.checked = not self.checked
+
     def is_unchecked(self):
         if self.checked is False:
             return True
         else:
             return False
+
+
+'''Класс для текстового поля'''
 
 
 class InputBox:
@@ -177,14 +172,14 @@ class InputBox:
         self.active = False
 
     def handle_event(self, event):
+        '''Если пользователь нажал на поле ввода'''
         if event.type == pg.MOUSEBUTTONDOWN:
-            # If the user clicked on the input_box rect.
+
             if self.rect.collidepoint(event.pos):
-                # Toggle the active variable.
                 self.active = not self.active
             else:
                 self.active = False
-            # Change the current color of the input box.
+            # Смена текущего цвета
             self.color = COLOR_ACTIVE if self.active else COLOR_INACTIVE
         if event.type == pg.KEYDOWN:
             if self.active:
@@ -195,25 +190,28 @@ class InputBox:
                     self.text = self.text[:-1]
                 else:
                     self.text += event.unicode
-                # Re-render the text.
                 self.txt_surface = FONT.render(self.text, True, self.color)
 
     def update(self):
-        # Resize the box if the text is too long.
+        '''Поменять размер поля ввода при необходимости'''
         width = max(200, self.txt_surface.get_width() + 10)
         self.rect.w = width
 
     def draw(self, screen):
-        # Blit the text.
         screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
-        # Blit the rect.
         pg.draw.rect(screen, self.color, self.rect, 2)
+
+
+'''Функция для записи результатов'''
 
 
 def write_result():
     global scores, login, level
     db.add_result(scores, login)
     db.close()
+
+
+'''функция для загрузки изображений'''
 
 
 def load_image(name, colorkey=None):
@@ -227,9 +225,12 @@ def load_image(name, colorkey=None):
         else:
             image = image.convert_alpha()
         return image
-    except pg.error as message:
+    except pg.error as message:  # если файл не найден, то выводим ошибку
         print(f'Image {name} not found!')
         raise SystemExit(message)
+
+
+'''функция для загрузки музыки'''
 
 
 def load_music(name):
@@ -238,7 +239,7 @@ def load_music(name):
         melody = pg.mixer.music.load(fullname)
         pg.mixer.music.play(-1)
         return melody
-    except pg.error as message:
+    except pg.error as message:  # если файл не найден, то выводим ошибку
         print(f'Melody {name} not found!')
         raise SystemExit(message)
 
@@ -248,19 +249,24 @@ FPS = 60
 COLOR_INACTIVE = pg.Color(136, 138, 133)
 COLOR_ACTIVE = pg.Color(0, 0, 0)
 FONT = pg.font.Font(None, 32)
-FONT_NAME = 'z003'
+FONT_NAME = 'z003'  # шрифт для текста
 
 screen = pg.display.set_mode(SIZE)
 clock = pg.time.Clock()
-pg.display.set_icon(load_image("skydiver.png"))
+pg.display.set_icon(load_image("skydiver.png"))  # иконка игры
 
 
-pg.display.set_caption("Skydiver")
+pg.display.set_caption("Skydiver")  # название игры
+
+'''функция для остановки программы'''
 
 
 def terminate():
     pg.quit()
     sys.exit()
+
+
+'''функция для отрисовки экрана проигрыша'''
 
 
 def end_screen():
@@ -277,7 +283,7 @@ def end_screen():
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
-        intro_rect.x = 75
+        intro_rect.x = 80
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
 
@@ -290,6 +296,9 @@ def end_screen():
                     return
         pg.display.flip()
         clock.tick(FPS)
+
+
+'''функция для отрисовки экрана победы'''
 
 
 def victory_screen():
@@ -322,10 +331,17 @@ def victory_screen():
 
 
 chkbox = Checkbox(screen, WIDTH - 20, 240)
+chkbox2 = Checkbox(screen, WIDTH - 20, 270)
+'''функция для отрисовки экрана входа'''
 
 
 def start_screen():
     global level, running, FONT_
+    cursor_image = load_image("cursor.png")
+    cursor = pg.sprite.Sprite(other_spriites)
+    cursor.image = cursor_image
+    cursor.rect = cursor.image.get_rect()
+    pg.mouse.set_visible(False)
     input_box1 = InputBox(95, 30, 140, 32)
     input_box2 = InputBox(95, 100, 140, 32)
     input_box3 = InputBox(95, 170, 140, 32)
@@ -339,6 +355,7 @@ def start_screen():
     text3 = FONT_.render("Level", True,
                          (0, 0, 0))
     text4 = FONT_.render("Music", True, (0, 0, 0))
+    text5 = FONT_.render("Clear achievements", True, (0, 0, 0))
 
     while True:
         global login, password
@@ -356,7 +373,10 @@ def start_screen():
                 el = box.handle_event(event)
                 if el:
                     arr.append(el)
-            chkbox.update_checkbox(event)
+            if event.type == pg.MOUSEMOTION:
+                cursor.rect.topleft = event.pos
+            chkbox.handel_event(event)
+            chkbox2.handel_event(event)
         for box in input_boxes:
             box.update()
         screen.fill((115, 195, 225))
@@ -366,13 +386,21 @@ def start_screen():
         screen.blit(text1, (5, 35))
         screen.blit(text3, (5, 175))
         screen.blit(text4, (WIDTH - 90, 235))
+        screen.blit(text5, (WIDTH - 197, 265))
+
         chkbox.render_checkbox()
+        chkbox2.render_checkbox()
+        if pg.mouse.get_focused():
+            other_spriites.draw(screen)
         pg.display.flip()
         clock.tick(FPS)
 
 
+'''класс Skydiver'а'''
+
+
 class Skydiver(pg.sprite.Sprite):
-    image = load_image("skydiver.png")
+    image = load_image("skydiver.png")  # загрузка изображения
 
     def __init__(self, *group):
         super().__init__(*group)
@@ -388,8 +416,10 @@ class Skydiver(pg.sprite.Sprite):
             end_screen()
 
 
-skydivers = pg.sprite.Group()
-skydiver = Skydiver(skydivers)
+skydivers = pg.sprite.Group()  # создать группу спрайтов
+skydiver = Skydiver(skydivers)  # добавиить спрайт в группу
+
+'''класс препятствия'''
 
 
 class Obstacle(pg.sprite.Sprite):
@@ -434,19 +464,28 @@ class Obstacle(pg.sprite.Sprite):
                 end_screen()
 
 
-horizontal_borders = pg.sprite.Group()
-borders = pg.sprite.Group()
+horizontal_borders = pg.sprite.Group()  # создать группу спрайтов
+borders = pg.sprite.Group()  # добавить спрайт в группу
+vertical_borders = pg.sprite.Group()  # создать группу спрайтов
 
 
 class Border(pg.sprite.Sprite):
+    # строго вертикальный или строго горизонтальный отрезок
     def __init__(self, x1, y1, x2, y2):
         super().__init__(borders)
-        self.add(horizontal_borders)
-        self.image = pg.Surface([x2 - x1, 1])
-        self.rect = pg.Rect(x1, y1, x2 - x1, 1)
+        if x1 == x2:  # вертикальная стенка
+            self.add(vertical_borders)
+            self.image = pg.Surface([1, y2 - y1])
+            self.rect = pg.Rect(x1, y1, 1, y2 - y1)
+        else:  # горизонтальная стенка
+            self.add(horizontal_borders)
+            self.image = pg.Surface([x2 - x1, 1])
+            self.rect = pg.Rect(x1, y1, x2 - x1, 1)
 
 
 font_name = pg.font.match_font(FONT_)
+
+'''функция для отрисовки текста'''
 
 
 def draw_text(surf, text, size, x, y):
@@ -457,7 +496,9 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
-melody_name = 'melody.mp3'
+melody_name = 'melody.mp3'  # название файла с мелодией
+
+other_spriites = pg.sprite.Group()  # создать группу спрайтов
 
 
 def main():
@@ -465,15 +506,21 @@ def main():
         scores_display
 
     color = None
-    start_screen()
-    scores_display = db.get_scores(login)
+    start_screen()  # вызов стартового экрана
     if chkbox.is_checked():
-        load_music(melody_name)
+        load_music(melody_name)  # загрузка мелодии
+    if chkbox2.is_checked():
+        print("Achievements cleared")
+        db.clear_achievements(login)
+    scores_display = db.get_scores(login)  # получение очков из базы данных
+
     if level == 1:
+        '''правила для I уровня'''
         distance = 170
         delay = 0.004
         color = 114, 159, 207
     elif level == 2:
+        '''правила для II уровня'''
         distance = 170
         delay = 0.002
         color = 32, 74, 135
@@ -484,11 +531,11 @@ def main():
     Border(5, HEIGHT - 5, WIDTH - 5, HEIGHT - 5)
     Border(5, 5, 5, HEIGHT - 5)
     Border(WIDTH - 5, 5, WIDTH - 5, HEIGHT - 5)
-
+    '''главный игровойй цикл'''
     while True:
         if not running:
             break
-        if scores >= 100:
+        if scores_display >= 100:
             victory_screen()
         counter += 1
         if counter == distance:
@@ -499,17 +546,15 @@ def main():
             if event.type == pg.QUIT:
                 db.close()
                 running = False
-
-            elif event.type == pg.KEYDOWN:
+            if event.type == pg.KEYDOWN:
                 if event.key == pg.K_RIGHT:
                     skydiver.rect.x = 200
-                elif event.key == pg.K_LEFT:
+                if event.key == pg.K_LEFT:
                     skydiver.rect.x = 10
-                elif event.key == pg.K_DOWN:
+                if event.key == pg.K_DOWN:
                     skydiver.rect.y += 30
-                elif event.key == pg.K_UP:
+                if event.key == pg.K_UP:
                     skydiver.rect.y -= 30
-
         screen.fill(color)
         draw_text(screen, str(scores_display), 22, WIDTH / 2, 10)
 
@@ -525,4 +570,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    pg.quit()
+    terminate()  # закрыть программу
