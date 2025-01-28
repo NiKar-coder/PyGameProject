@@ -519,12 +519,13 @@ def main():
         '''правила для I уровня'''
         distance = 170
         delay = 0.003
-        color = 114, 159, 207
+
+        color = 32, 74, 135
     elif level == 2:
         '''правила для II уровня'''
         distance = 170
         delay = 0.002
-        color = 32, 74, 135
+        color = 114, 159, 207
     clouds = pg.sprite.Group()
     # pg.mouse.set_visible(False)
     counter = distance - 1
