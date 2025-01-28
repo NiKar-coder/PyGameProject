@@ -424,7 +424,7 @@ skydiver = Skydiver(skydivers)  # добавиить спрайт в групп�
 
 class Obstacle(pg.sprite.Sprite):
     images = ["cloud.png", "cloudO.png", "bird.png"]
-    POSITIONS_X = [10, 200]
+    POSITIONS_X = [10, WIDTH - 80]
 
     def __init__(self, *group):
         super().__init__(*group)
@@ -443,6 +443,7 @@ class Obstacle(pg.sprite.Sprite):
         elif pg.sprite.spritecollideany(self, horizontal_borders):
             self.kill()
         else:
+
             if self.name == "cloud.png":
                 if level == 2:
                     scores += 0.2
@@ -548,7 +549,7 @@ def main():
                 running = False
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_RIGHT:
-                    skydiver.rect.x = 200
+                    skydiver.rect.x = WIDTH - 63
                 if event.key == pg.K_LEFT:
                     skydiver.rect.x = 10
                 if event.key == pg.K_DOWN:
