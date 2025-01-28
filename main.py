@@ -95,7 +95,7 @@ FONT_ = 'z003'  # игровой шрифт
 
 
 class Checkbox:
-    def __init__(self, surface, x, y, color=(230, 230, 230), caption="",
+    def __init__(self, surface, x, y, color=(164, 0, 0), caption="",
                  outline_color=(0, 0, 0),
                  check_color=(0, 0, 0), font_size=22, font_color=(0, 0, 0),
                  text_offset=(28, 1)):
@@ -180,7 +180,7 @@ class InputBox:
             else:
                 self.active = False
             # Смена текущего цвета
-            self.color = COLOR_ACTIVE if self.active else COLOR_INACTIVE
+            self.color = (164, 0, 0) if self.active else COLOR_INACTIVE
         if event.type == pg.KEYDOWN:
             if self.active:
                 if event.key == pg.K_RETURN:
@@ -198,7 +198,7 @@ class InputBox:
         self.rect.w = width
 
     def draw(self, screen):
-        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        screen.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 5))
         pg.draw.rect(screen, self.color, self.rect, 2)
 
 
@@ -279,7 +279,7 @@ def end_screen():
     font = FONT_
     text_coord = 280
     for line in intro_text:
-        string_rendered = font.render(line, 1, pg.Color('black'))
+        string_rendered = font.render(line, 1, (164, 0, 0))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -311,7 +311,7 @@ def victory_screen():
     font = FONT_
     text_coord = 280
     for line in intro_text:
-        string_rendered = font.render(line, 1, pg.Color('black'))
+        string_rendered = font.render(line, 1, (164, 0, 0))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -349,13 +349,13 @@ def start_screen():
     arr = list()
     FONT_ = pg.font.SysFont(FONT_, 24)
     text2 = FONT_.render("Password", True,
-                         (0, 0, 0))
+                         (164, 0, 0))
     text1 = FONT_.render("Login", True,
-                         (0, 0, 0))
+                         (164, 0, 0))
     text3 = FONT_.render("Level", True,
-                         (0, 0, 0))
-    text4 = FONT_.render("Music", True, (0, 0, 0))
-    text5 = FONT_.render("Clear achievements", True, (0, 0, 0))
+                         (164, 0, 0))
+    text4 = FONT_.render("Music", True, (164, 0, 0))
+    text5 = FONT_.render("Clear achievements", True, (164, 0, 0))
 
     while True:
         global login, password
@@ -489,9 +489,9 @@ font_name = pg.font.match_font(FONT_)
 '''функция для отрисовки текста'''
 
 
-def draw_text(surf, text, size, x, y):
+def draw_text(surf, text, size, x, y, font_color):
     font = pg.font.Font(font_name, size)
-    text_surface = font.render(text, True, (203, 0, 255))
+    text_surface = font.render(text, True, font_color)
     text_rect = text_surface.get_rect()
     text_rect.midtop = (x, y)
     surf.blit(text_surface, text_rect)
@@ -518,7 +518,7 @@ def main():
     if level == 1:
         '''правила для I уровня'''
         distance = 170
-        delay = 0.004
+        delay = 0.003
         color = 114, 159, 207
     elif level == 2:
         '''правила для II уровня'''
@@ -557,7 +557,7 @@ def main():
                 if event.key == pg.K_UP:
                     skydiver.rect.y -= 30
         screen.fill(color)
-        draw_text(screen, str(scores_display), 22, WIDTH / 2, 10)
+        draw_text(screen, str(scores_display), 22, WIDTH / 2, 10, (164, 0, 0))
 
         skydivers.draw(screen)
         clouds.draw(screen)
