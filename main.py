@@ -272,21 +272,8 @@ def terminate():
 def end_screen():
     global running
     write_result()
-    intro_text = ['Game over!',
-                  f'Your score: {scores_display}',
-                  'Press "ESC" to exit']
-    screen.fill((115, 195, 225))
-    font = FONT_
-    text_coord = 280
-    for line in intro_text:
-        string_rendered = font.render(line, 1, (164, 0, 0))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 80
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-
+    all_sprites = pg.sprite.Group()
+    Animation(all_sprites, image=load_image("gameover.png"))
     while True:
 
         for event in pg.event.get():
@@ -294,31 +281,24 @@ def end_screen():
                 if event.key == pg.K_ESCAPE:
                     running = False
                     return
+        all_sprites.draw(screen)
+        all_sprites.update()
         pg.display.flip()
-        clock.tick(FPS)
+        clock.tick(300)
 
 
 '''функция для отрисовки экрана победы'''
 
 
 def victory_screen():
-    global running
+    global running, level
     screen.fill((115, 195, 225))
     write_result()
-    intro_text = [f"U've passed the {level} level!",
-                  'Press "ESC" to exit']
-
-    font = FONT_
-    text_coord = 280
-    for line in intro_text:
-        string_rendered = font.render(line, 1, (164, 0, 0))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 50
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-
+    all_sprites = pg.sprite.Group()
+    if level == 1:
+        Animation(all_sprites, image=load_image("first_victory.png"))
+    else:
+        Animation(all_sprites, image=load_image("second_victory.png"))
     while True:
 
         for event in pg.event.get():
@@ -326,8 +306,10 @@ def victory_screen():
                 if event.key == pg.K_ESCAPE:
                     running = False
                     return
+        all_sprites.draw(screen)
+        all_sprites.update()
         pg.display.flip()
-        clock.tick(FPS)
+        clock.tick(300)
 
 
 chkbox = Checkbox(screen, WIDTH - 20, 240)
@@ -375,6 +357,8 @@ def start_screen():
                     arr.append(el)
             if event.type == pg.MOUSEMOTION:
                 cursor.rect.topleft = event.pos
+            if event.type == pg.QUIT:
+                terminate()
             chkbox.handel_event(event)
             chkbox2.handel_event(event)
         for box in input_boxes:
@@ -485,6 +469,21 @@ class Border(pg.sprite.Sprite):
 
 
 font_name = pg.font.match_font(FONT_)
+
+
+class Animation(pg.sprite.Sprite):
+
+    def __init__(self, *group, image):
+        super().__init__(*group)
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x = -300
+        self.rect.y = 0
+
+    def update(self):
+        if self.rect.x:
+            self.rect.x += 1
+
 
 '''функция для отрисовки текста'''
 
